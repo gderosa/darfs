@@ -1,29 +1,46 @@
 /*
-  FUSE: Filesystem in Userspace  
-  Copyright (C) 2001-2007  Miklos Szeredi <miklos@szeredi.hu>
+ * DARFS: browse files inside a DAR archive (http://dar.linux.free.fr/)
+ * Copyright (C) 2010 Guido De Rosa <guido.derosa@vemarsas.it>
+ * 
+ * based on: FUSE: Filesystem in Userspace  
+ * Copyright (C) 2001-2007  Miklos Szeredi <miklos@szeredi.hu>
+ * 
+ * This program can be distributed under the terms of the GNU GPL.
+ */
 
-  This program can be distributed under the terms of the GNU GPL.
-  See the file COPYING.
-
-  gcc -Wall `pkg-config fuse --cflags --libs` hello.c -o hello
-*/
 
 #define FUSE_USE_VERSION 26
 
-#include <fuse.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stddef.h>
+#include <fuse.h>
+#include <fuse_opt.h>
 
 const char * cplusplus_hello_str();
 int darfs_exists(const char * path);
 mode_t darfs_mode(const char * path);
 off_t darfs_size(const char * path);
 
+static char * archive = NULL;
+
+static int darfs_opt_proc(void *data, const char *arg, int key, struct fuse_args *outargs);
+
 #define hello_str cplusplus_hello_str()
 
 static const char *hello_path = "/hello";
+
+/** options for fuse_opt.h */
+/* struct options {
+   int readonly;
+}options;
+*/
+
+/** macro to define options */
+/* #define HELLOFS_OPT_KEY(t, p, v) { t, offsetof(struct options, p), v } */
+
 
 static int hello_getattr(const char *path, struct stat *stbuf)
 {
@@ -100,7 +117,26 @@ static struct fuse_operations hello_oper = {
 	.read		= hello_read,
 };
 
+static int darfs_opt_proc(void *data, const char *arg, int key, struct fuse_args *outargs)
+{
+     if (key == FUSE_OPT_KEY_NONOPT && archive == NULL) {
+             archive = strdup(arg);
+             return 0;
+     }
+     return 1;
+}
+
 int main(int argc, char *argv[])
 {
-	return fuse_main(argc, argv, &hello_oper, NULL);
+	int ret;
+	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
+	
+	fuse_opt_parse(&args, NULL, NULL, darfs_opt_proc);
+
+	ret = fuse_main(args.argc, args.argv, &hello_oper, NULL);
+	
+	/** free arguments */
+  fuse_opt_free_args(&args);
+  
+	return ret;
 }
