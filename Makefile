@@ -1,15 +1,22 @@
-# Link together C and C++
+CC=gcc
+CXX=g++
+CFLAGS=-Wall -O2
+DARLIBS=$(shell pkg-config --libs libdar64)
+FUSELIBS=$(shell pkg-config --libs fuse)
+DARCFLAGS=$(shell pkg-config --cflags libdar64)
+FUSECFLAGS=$(shell pkg-config --cflags fuse)
+EXE=darfs
 
-all: hello
+all: ${EXE}
 
-hello: hello.o cpp.o
-	g++ -Wall `pkg-config fuse --libs` hello.o cpp.o -o hello
+darfs: dar.o fuse.o
+	${CXX} ${DARLIBS} ${FUSELIBS} ${DARLIBS} dar.o fuse.o -o darfs
 
-hello.o: hello.c
-	gcc -Wall `pkg-config fuse --cflags` -c hello.c -o hello.o
+fuse.o: fuse.c
+	${CC} ${FUSECFLAGS} ${CFLAGS} -c fuse.c -o fuse.o
 
-cpp.o: cpp.cpp
-	g++ -c cpp.cpp -o cpp.o
+dar.o: dar.cpp
+	${CXX} ${DARCFLAGS} ${CFLAGS} -c dar.cpp -o dar.o
 
 clean:
-	rm -f *.o hello
+	rm -f *.o ${EXE}
