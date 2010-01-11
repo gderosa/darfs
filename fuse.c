@@ -16,7 +16,10 @@
 #include <errno.h>
 #include <fcntl.h>
 
-extern const char * cplusplus_hello_str();
+const char * cplusplus_hello_str();
+int darfs_exists(const char * path);
+mode_t darfs_mode(const char * path);
+off_t darfs_size(const char * path);
 
 #define hello_str cplusplus_hello_str()
 
@@ -34,6 +37,10 @@ static int hello_getattr(const char *path, struct stat *stbuf)
 		stbuf->st_mode = S_IFREG | 0444;
 		stbuf->st_nlink = 1;
 		stbuf->st_size = strlen(hello_str);
+	} else if (darfs_exists(path)) {
+		stbuf->st_mode = darfs_mode(path);
+		stbuf->st_nlink = 1; /* TODO: darfs_nlink()? */
+		stbuf->st_size = darfs_size(path); 
 	} else
 		res = -ENOENT;
 
