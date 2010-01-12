@@ -86,6 +86,8 @@ libdar::user_interaction_callback dialog =
     // here follows the definition of our own implementation of
     // of a user_interaction class
 
+
+/*
 class my_user_interaction : public libdar::user_interaction
 {
 public :
@@ -125,6 +127,7 @@ void my_user_interaction::listing(const std::string & flag,
 {
   std::cout << filename << "\n";
 }
+*/
 
 void listing_callback(const std::string & flag,
                       const std::string & perm,
