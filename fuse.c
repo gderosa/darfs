@@ -23,6 +23,7 @@ const char * cplusplus_hello_str();
 int darfs_exists(const char * path);
 mode_t darfs_mode(const char * path);
 off_t darfs_size(const char * path);
+int open_dar_archive(const char * archive_);
 
 static char * archive = NULL;
 
@@ -121,6 +122,7 @@ static int darfs_opt_proc(void *data, const char *arg, int key, struct fuse_args
 {
      if (key == FUSE_OPT_KEY_NONOPT && archive == NULL) {
              archive = strdup(arg);
+             open_dar_archive(archive);
              return 0;
      }
      return 1;
