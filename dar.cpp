@@ -83,11 +83,72 @@ libdar::user_interaction_callback dialog =
 
 
 
+    // here follows the definition of our own implementation of
+    // of a user_interaction class
+
+class my_user_interaction : public libdar::user_interaction
+{
+public :
+     // the inherited pure virtual methods we must define
+     // as seen at the beginning of this tutorial:
+       void pause(const std::string & message);
+       void warning(const std::string & message);
+       std::string get_string(const std::string & message, bool echo);
+       user_interaction *clone() const;
+
+    // we can overwrite this method to have splitted fields for listing:
+        void listing(const std::string & flag,
+                            const std::string & perm,
+                            const std::string & uid,
+                            const std::string & gid,
+                            const std::string & size,
+                            const std::string & date,
+                            const std::string & filename,
+                            bool is_dir,
+                            bool has_children);
+
+     // but it will not get used by libdar unless we call the protected method set_use_listing()
+     // for example this can be done in the class constructor :
+
+     my_user_interaction() { set_use_listing(true); };
+};
+
+void my_user_interaction::listing(const std::string & flag,
+                            const std::string & perm,
+                            const std::string & uid,
+                            const std::string & gid,
+                            const std::string & size,
+                            const std::string & date,
+                            const std::string & filename,
+                            bool is_dir,
+                            bool has_children)
+{
+  std::cout << filename << "\n";
+}
+
+void listing_callback(const std::string & flag,
+                      const std::string & perm,
+                      const std::string & uid,
+                      const std::string & gid,
+                      const std::string & size,
+                      const std::string & date,
+                      const std::string & filename,
+                      bool is_dir,
+                      bool has_children,
+                      void *context)
+{
+   std::cout << filename << " (listing_calback) \n";
+}
+
+
+
+
+
 extern "C" int open_dar_archive(const char * basepath)
 {
 	dar_check_version(); // initializes too (mandatory!) 
 	try {
-	libdar::archive *archive_object = new libdar::archive(dialog,     
+	   archive_object_ptr = new libdar::archive(dialog,     
         "/tmp",  // where is the archive
         "etc", // slice name
         "dar",   // dar's archive extensions
@@ -99,15 +160,20 @@ extern "C" int open_dar_archive(const char * basepath)
         "",    // no command executed for now
         true); // no verbose output
         
-        // archive_object_ptr = &archive_object;
-      }
-      catch(libdar::Egeneric & e)
-      {
+     dialog.set_listing_callback(&listing_callback);
+     // now libdar will call the listing_callback function when we
+     // use this dialog object for listing the archive contents. 
+        
+     archive_object_ptr->get_children_of(dialog, "");   
+      
+        
+  }
+  catch(libdar::Egeneric & e)
+  {
          std::cerr << e.get_message() << std::endl;
-      }  
-        
-        
-        return 0;
+  }  
+                
+  return 0;
 }
 
 void dar_check_version()
