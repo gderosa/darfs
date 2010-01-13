@@ -6,6 +6,14 @@ extern "C" {
 #include <ios>
 #include <dar/libdar.hpp>
 
+#include <vector>
+#include <string>
+#include <cstring>
+
+using namespace std;
+
+vector<string> files_in_dir;
+
 void dar_check_version();
 
 extern "C" const char * cplusplus_hello_str();
@@ -15,7 +23,6 @@ extern "C" off_t darfs_size(const char * path);
 extern "C" int open_dar_archive(const char * basepath);
 
 static libdar::archive * archive_object_ptr = NULL;
-
 
 
   // our own callback functions.
@@ -140,12 +147,45 @@ void listing_callback(const std::string & flag,
                       bool has_children,
                       void *context)
 {
-   std::cout << filename << " (listing_calback) \n";
+   // std::cout << filename << " (listing_calback) \n";
+   files_in_dir.push_back(filename);
 }
 
+extern "C" void darfs_dir_listing_flush()
+{
+  files_in_dir.clear();
+}
 
-
-
+extern "C" void get_files_in_dir(char * path, char *** list_of_files, unsigned long * n_files)
+{
+ try { 
+  dar_check_version(); // initializes too (mandatory!) 
+  darfs_dir_listing_flush();
+  
+  archive_object_ptr->get_children_of(dialog, path);
+  
+  *n_files = files_in_dir.size();
+  
+  //http://bytes.com/topic/c/answers/127614-best-way-copy-vector-string-char
+  //
+  // allocate memory for an array of character strings
+  char ** cstr = new char*[files_in_dir.size()];
+  
+  // for each string, allocate memory in the character array and copy
+  for (unsigned long i=0; i<files_in_dir.size(); i++) {
+    cstr[i] = new char[files_in_dir[i].size()+1];
+    strncpy(cstr[i], files_in_dir[i].c_str(), files_in_dir[i].size());
+  }
+  
+  *list_of_files = cstr;
+  
+ }
+ catch(libdar::Egeneric & e)
+  {
+         std::cerr << e.get_message() << std::endl;
+  }  
+   
+}
 
 extern "C" int open_dar_archive(const char * basepath)
 {
@@ -219,4 +259,6 @@ extern "C" off_t darfs_size(const char * path)
 {
 	return 123L;
 }
+
+
 

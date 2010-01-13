@@ -1,7 +1,7 @@
 CC=gcc
 CXX=g++
 # See http://www.gnu.org/s/libc/manual/html_mono/libc.html#index-off_005ft-1223
-CFLAGS=-Wall -O2 -D_FILE_OFFSET_BITS=64 
+CFLAGS=-Wall -O0 -D_FILE_OFFSET_BITS=64 -g
 DARLIBS=$(shell pkg-config --libs libdar64)
 FUSELIBS=$(shell pkg-config --libs fuse)
 DARCFLAGS=$(shell pkg-config --cflags libdar64)

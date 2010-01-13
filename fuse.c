@@ -24,6 +24,8 @@ int darfs_exists(const char * path);
 mode_t darfs_mode(const char * path);
 off_t darfs_size(const char * path);
 int open_dar_archive(const char * archive_);
+void darfs_dir_listing_flush();
+void get_files_in_dir(char * path, char *** files_in_dir, unsigned long * n_files);
 
 static char * archive = NULL;
 
@@ -77,6 +79,20 @@ static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	filler(buf, ".", NULL, 0);
 	filler(buf, "..", NULL, 0);
 	filler(buf, hello_path + 1, NULL, 0);
+	
+	unsigned long n_files = 0;
+	char ** files = NULL;
+	
+	darfs_dir_listing_flush();
+	
+	get_files_in_dir("", &files, &n_files);
+	
+	unsigned int i;
+	
+	for (i=0; i<n_files; i++)
+	{
+		filler(buf, files[i], NULL, 0);
+	}
 
 	return 0;
 }
