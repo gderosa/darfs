@@ -156,7 +156,7 @@ extern "C" void darfs_dir_listing_flush()
   files_in_dir.clear();
 }
 
-extern "C" void get_files_in_dir(char * path, char *** list_of_files, unsigned long * n_files)
+extern "C" void get_files_in_dir(const char * path, char *** list_of_files, unsigned long * n_files)
 {
  try { 
   dar_check_version(); // initializes too (mandatory!) 
@@ -174,7 +174,9 @@ extern "C" void get_files_in_dir(char * path, char *** list_of_files, unsigned l
   // for each string, allocate memory in the character array and copy
   for (unsigned long i=0; i<files_in_dir.size(); i++) {
     cstr[i] = new char[files_in_dir[i].size()+1];
-    strncpy(cstr[i], files_in_dir[i].c_str(), files_in_dir[i].size());
+    strncpy(cstr[i], files_in_dir[i].c_str(), files_in_dir[i].size()+1);
+    
+    cout << "dar.cpp: " << "cstr:" << cstr[i] << " " << "files_in_dir:" << files_in_dir[i] << "|" << "\n";
   }
   
   *list_of_files = cstr;
